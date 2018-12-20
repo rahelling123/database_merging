@@ -68,11 +68,23 @@ for i in range(1,num_rows_pdm):
             matching_table.append(current_value_last)
             table_index+=1
 
-print(matching_table)
-print(master_data)
+# print(matching_table)
+print(master_data[1])
+
+new_wb = openpyxl.Workbook()
+sheet = new_wb.active
+master_data[1]
+
+for i in range(1,len(master_data)):
+     sheet['A' + str(i)] = master_data[i,1]
+     sheet['B' + str(i)] = master_data[i,2]
+     sheet['C' + str(i)] = master_data[i,3]
+     sheet['D' + str(i)] = master_data[i,4]
+     sheet['E' + str(i)] = master_data[i,5]
+     sheet['F' + str(i)] = master_data[i,6]
+
+new_wb.save('first_excel_output.xlsx')
 
 
-# for item in matching_table:
-#
-#
-#
+
+#initialize the vari
