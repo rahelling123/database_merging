@@ -24,7 +24,7 @@ arena_data_add = []
 table_index = 0
 
 #create array of all Arena files
-for i in range(2,num_rows_arena):
+for i in range(1,num_rows_arena):
     arena_data_add = []
     arena_data_add.append(sheet_arena[('A'+str(i))].value)
     arena_data_add.append(sheet_arena[('B' + str(i))].value)
@@ -41,7 +41,7 @@ for i in range(1,num_rows_pdm):
     current_value = os.path.splitext(current_value_ext)[0] #filename minus extension
     current_value_last = current_value[-11:] #last 11 digits of filename for incorrectly named files
 
-#TODO verify that this table is being built correctly, it looks like the arena files are wrong
+
     for x in range(1,num_rows_arena):
         match_data=[]
         current_arena = 'A' + str(x)
@@ -69,12 +69,6 @@ for i in range(1,num_rows_pdm):
             matching_table.append(current_value_last)
             table_index+=1
 
-# print(matching_table)
-print(master_data)
-
-new_wb = openpyxl.Workbook()
-sheet = new_wb.active
-master_data[1]
 
 #['original file name', 'name', 'pdm_revision', 'pdm_state', 'revised by', 'arena_revision', 'item_phase']
 #initialize the various combinations of tables":
@@ -110,26 +104,86 @@ for i in range(1,len(master_data)):
     d = (master_data[i, 4])
     e = (master_data[i, 5])
     if master_data[i,2]==master_data[i,5] and ((master_data[i,3]==s1) or (master_data[i,3]==s2)):
-        approved_match.append(master_data[i])
+        approved_match = numpy.vstack((approved_match,master_data[i]))
     elif master_data[i,2]==master_data[i,5] and ((master_data[i,3]==s3) or (master_data[i,3]==s4)):
-        waiting_match.append(master_data[i])
+        waiting_match= numpy.vstack((waiting_match,master_data[i]))
     elif master_data[i,2]==master_data[i,5] and ((master_data[i,3]==s5) or (master_data[i,3]==s6)):
-        change_match.append(master_data[i])
+        change_match = numpy.vstack((change_match, master_data[i]))
     elif master_data[i,2]!=master_data[i,5]:
-        no_match.append(master_data[i])
+        no_match = numpy.vstack((no_match, master_data[i]))
     elif master_data[i,2]==master_data[i,5]:
-        obsolete_match.append(master_data[i])
+        obsolete_match = numpy.vstack((obsolete_match,master_data[i]))
 
 
-for i in range(1,len(master_data)):
-     sheet['A' + str(i)] = master_data[i,1]
-     sheet['B' + str(i)] = master_data[i,2]
-     sheet['C' + str(i)] = master_data[i,3]
-     sheet['D' + str(i)] = master_data[i,4]
-     sheet['E' + str(i)] = master_data[i,5]
-     sheet['F' + str(i)] = master_data[i,6]
+
+
+
+new_wb = openpyxl.Workbook()
+new_wb.create_sheet(index=0, title="Matching and Approved")
+new_wb.create_sheet(index=1, title="Matching, Waiting Approval")
+new_wb.create_sheet(index=2, title="Matching, CIP, Initial")
+new_wb.create_sheet(index=3, title="Non-matching")
+new_wb.create_sheet(index=4, title="ACT Obsolete")
+
+
+
+
+#TODO this needs to be fixed, the writing to files is wrong
+sheet = new_wb["Matching and Approved"]
+
+if len(approved_match)!=7:
+    for i in range(1,len(approved_match)):
+         sheet['A' + str(i)] = approved_match[i,1]
+         sheet['B' + str(i)] = approved_match[i,2]
+         sheet['C' + str(i)] = approved_match[i,3]
+         sheet['D' + str(i)] = approved_match[i,4]
+         sheet['E' + str(i)] = approved_match[i,5]
+         sheet['F' + str(i)] = approved_match[i,6]
+
+
+sheet = new_wb["Matching, Waiting Approval"]
+if len(waiting_match)!=7:
+    for i in range(1,len(waiting_match)):
+         sheet['A' + str(i)] = waiting_match[i,1]
+         sheet['B' + str(i)] = waiting_match[i,2]
+         sheet['C' + str(i)] = waiting_match[i,3]
+         sheet['D' + str(i)] = waiting_match[i,4]
+         sheet['E' + str(i)] = waiting_match[i,5]
+         sheet['F' + str(i)] = waiting_match[i,6]
+
+sheet = new_wb["Matching, CIP, Initial"]
+if len(change_match)!=7:
+    for i in range(1,len(change_match)):
+         sheet['A' + str(i)] = change_match[i,1]
+         sheet['B' + str(i)] = change_match[i,2]
+         sheet['C' + str(i)] = change_match[i,3]
+         sheet['D' + str(i)] = change_match[i,4]
+         sheet['E' + str(i)] = change_match[i,5]
+         sheet['F' + str(i)] = change_match[i,6]
+
+sheet = new_wb["Non-matching"]
+if len(no_match)!=7:
+    for i in range(1,len(no_match)):
+         sheet['A' + str(i)] = no_match[i,1]
+         sheet['B' + str(i)] = no_match[i,2]
+         sheet['C' + str(i)] = no_match[i,3]
+         sheet['D' + str(i)] = no_match[i,4]
+         sheet['E' + str(i)] = no_match[i,5]
+         sheet['F' + str(i)] = no_match[i,6]
+
+sheet = new_wb["ACT Obsolete"]
+if len(obsolete_match)!=7:
+    for i in range(1,len(obsolete_match)):
+         sheet['A' + str(i)] = obsolete_match[i,1]
+         sheet['B' + str(i)] = obsolete_match[i,2]
+         sheet['C' + str(i)] = obsolete_match[i,3]
+         sheet['D' + str(i)] = obsolete_match[i,4]
+         sheet['E' + str(i)] = obsolete_match[i,5]
+         sheet['F' + str(i)] = obsolete_match[i,6]
+
+
+
 
 new_wb.save('first_excel_output.xlsx')
 print(approved_match)
 print(waiting_match)
-
