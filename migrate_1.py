@@ -19,19 +19,19 @@ num_rows_arena = sheet_arena.max_row
 #initialize table for matching number build out
 matching_table = []
 master_data = ['original file name', 'name', 'pdm_revision', 'pdm_state', 'revised by', 'arena_revision', 'item_phase']
-arena_data = ['number', 'name', 'revision', 'phase', 'owner']
-arena_data_add = []
+# arena_data = ['number', 'name', 'revision', 'phase', 'owner']
+# arena_data_add = []
 table_index = 0
 
 #create array of all Arena files
-for i in range(1,num_rows_arena):
-    arena_data_add = []
-    arena_data_add.append(sheet_arena[('A'+str(i))].value)
-    arena_data_add.append(sheet_arena[('B' + str(i))].value)
-    arena_data_add.append(sheet_arena[('C' + str(i))].value)
-    arena_data_add.append(sheet_arena[('D' + str(i))].value)
-    arena_data_add.append(sheet_arena[('E' + str(i))].value)
-    arena_data=numpy.vstack((arena_data,arena_data_add))
+# for i in range(1,num_rows_arena):
+#     arena_data_add = []
+#     arena_data_add.append(sheet_arena[('A'+str(i))].value)
+#     arena_data_add.append(sheet_arena[('B' + str(i))].value)
+#     arena_data_add.append(sheet_arena[('C' + str(i))].value)
+#     arena_data_add.append(sheet_arena[('D' + str(i))].value)
+#     arena_data_add.append(sheet_arena[('E' + str(i))].value)
+#     arena_data=numpy.vstack((arena_data,arena_data_add))
 
 
 #this creates a table of all components that match in PDM and Arena, with various name parsing
@@ -40,12 +40,14 @@ for i in range(1,num_rows_pdm):
     current_value_ext = sheet_pdm['%s' %current_pdm].value
     current_value = os.path.splitext(current_value_ext)[0] #filename minus extension
     current_value_last = current_value[-11:] #last 11 digits of filename for incorrectly named files
-
+    current_value_first = current_value[:11] #first 11 digits of filename for incorrectly named files
 
     for x in range(1,num_rows_arena):
         match_data=[]
         current_arena = 'A' + str(x)
         current_arena = sheet_arena['%s' %current_arena].value
+
+        # look up in arena after removing extension PDM
         if current_value == current_arena:
             match_data.append(current_value_ext)#start building row of data for matches
             match_data.append(current_value)
@@ -55,8 +57,10 @@ for i in range(1,num_rows_pdm):
             match_data.append(sheet_arena[('C' + str(x))].value) #revision arena
             match_data.append(sheet_arena[('D' + str(x))].value) #phase state arena
             master_data = numpy.vstack((master_data,match_data))
-            matching_table.append(current_value)
-            table_index = table_index + 1
+            # matching_table.append(current_value)
+            # table_index = table_index + 1
+
+            # look up in arena using last 11 characters of PDM
         elif current_value_last == current_arena:
             match_data.append(current_value_ext)#start building row of data for matches
             match_data.append(current_value_last)
@@ -66,11 +70,24 @@ for i in range(1,num_rows_pdm):
             match_data.append(sheet_arena[('C' + str(x))].value) #revision arena
             match_data.append(sheet_arena[('D' + str(x))].value) #phase state arena
             master_data = numpy.vstack((master_data,match_data))
-            matching_table.append(current_value_last)
-            table_index+=1
+            # matching_table.append(current_value_last)
+            # table_index+=1
+
+            #look up in arena using first 11 characters of PDM
+        elif current_value_first == current_arena:
+            match_data.append(current_value_ext)#start building row of data for matches
+            match_data.append(current_value_first)
+            match_data.append(sheet_pdm[('C' + str(i))].value) # revision pdm
+            match_data.append(sheet_pdm[('D' + str(i))].value) # state pdm
+            match_data.append(sheet_pdm[('E' + str(i))].value) # revised by pdm
+            match_data.append(sheet_arena[('C' + str(x))].value) #revision arena
+            match_data.append(sheet_arena[('D' + str(x))].value) #phase state arena
+            master_data = numpy.vstack((master_data,match_data))
+            # matching_table.append(current_value_last)
+            # table_index+=1
 
 
-#['original file name', 'name', 'pdm_revision', 'pdm_state', 'revised by', 'arena_revision', 'item_phase']
+
 #initialize the various combinations of tables":
 #Arena and PDM revision match, PDM state is either "Approved (Prototype)" or "Approved (Production)
 approved_match = ['original file name', 'name', 'pdm_revision', 'pdm_state', 'revised by', 'arena_revision', 'item_phase']
@@ -98,11 +115,11 @@ s7 = "ACT Obsolete"
 
 for i in range(1,len(master_data)):
     #check rev match and
-    a = (master_data[i,1])
-    b = (master_data[i, 2])
-    c = (master_data[i, 3])
-    d = (master_data[i, 4])
-    e = (master_data[i, 5])
+    # a = (master_data[i,1])
+    # b = (master_data[i, 2])
+    # c = (master_data[i, 3])
+    # d = (master_data[i, 4])
+    # e = (master_data[i, 5])
     if master_data[i,2]==master_data[i,5] and ((master_data[i,3]==s1) or (master_data[i,3]==s2)):
         approved_match = numpy.vstack((approved_match,master_data[i]))
     elif master_data[i,2]==master_data[i,5] and ((master_data[i,3]==s3) or (master_data[i,3]==s4)):
@@ -128,7 +145,6 @@ new_wb.create_sheet(index=4, title="ACT Obsolete")
 
 
 
-#TODO this needs to be fixed, the writing to files is wrong
 sheet = new_wb["Matching and Approved"]
 
 if len(approved_match)!=7:
