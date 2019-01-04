@@ -19,19 +19,9 @@ num_rows_arena = sheet_arena.max_row
 #initialize table for matching number build out
 matching_table = []
 master_data = ['original file name', 'name', 'pdm_revision', 'pdm_state', 'revised by', 'arena_revision', 'item_phase']
-# arena_data = ['number', 'name', 'revision', 'phase', 'owner']
-# arena_data_add = []
-table_index = 0
+left_over_pdm = ['original file name', 'pdm_revision', 'pdm_state', 'revised by']
 
-#create array of all Arena files
-# for i in range(1,num_rows_arena):
-#     arena_data_add = []
-#     arena_data_add.append(sheet_arena[('A'+str(i))].value)
-#     arena_data_add.append(sheet_arena[('B' + str(i))].value)
-#     arena_data_add.append(sheet_arena[('C' + str(i))].value)
-#     arena_data_add.append(sheet_arena[('D' + str(i))].value)
-#     arena_data_add.append(sheet_arena[('E' + str(i))].value)
-#     arena_data=numpy.vstack((arena_data,arena_data_add))
+
 
 
 #this creates a table of all components that match in PDM and Arena, with various name parsing
@@ -43,6 +33,7 @@ for i in range(1,num_rows_pdm):
     current_value_first = current_value[:11] #first 11 digits of filename for incorrectly named files
 
     for x in range(1,num_rows_arena):
+        left_over_build = []
         match_data=[]
         current_arena = 'A' + str(x)
         current_arena = sheet_arena['%s' %current_arena].value
@@ -85,6 +76,13 @@ for i in range(1,num_rows_pdm):
             master_data = numpy.vstack((master_data,match_data))
             # matching_table.append(current_value_last)
             # table_index+=1
+
+        else:
+            left_over_build.append(current_value_ext)#start building row of data for matches
+            left_over_build.append(sheet_pdm[('B' + str(i))].value) # revision pdm
+            left_over_build.append(sheet_pdm[('C' + str(i))].value) # state pdm
+            left_over_build.append(sheet_pdm[('D' + str(i))].value) # revised by pdm
+            left_over_pdm = numpy.vstack((left_over_pdm,left_over_build))
 
 
 
@@ -141,7 +139,7 @@ new_wb.create_sheet(index=1, title="Matching, Waiting Approval")
 new_wb.create_sheet(index=2, title="Matching, CIP, Initial")
 new_wb.create_sheet(index=3, title="Non-matching")
 new_wb.create_sheet(index=4, title="ACT Obsolete")
-
+new_wb.create_sheet(index=5, title="Leftover PDM Items")
 
 
 
@@ -196,6 +194,14 @@ if len(obsolete_match)!=7:
          sheet['D' + str(i)] = obsolete_match[i,4]
          sheet['E' + str(i)] = obsolete_match[i,5]
          sheet['F' + str(i)] = obsolete_match[i,6]
+
+sheet = new_wb["Leftover PDM Items"]
+if len(left_over_pdm)!=7:
+    for i in range(1,len(left_over_pdm)):
+         sheet['A' + str(i)] = left_over_pdm[i,1]
+         sheet['B' + str(i)] = left_over_pdm[i,2]
+         sheet['C' + str(i)] = left_over_pdm[i,3]
+         sheet['D' + str(i)] = left_over_pdm[i,4]
 
 
 
